@@ -9,20 +9,30 @@ import (
 
 func GetRepos() ([]*github.Repository, error) {
 	// Create Git hub client
-	client, owner := GetClient()
+	client, owner, err := GetGithubClient()
+	if err != nil {
+		panic("error getting config")
+	}
 
 	repos, _, err := client.Repositories.ListByUser(context.Background(), owner, nil)
 	return repos, err
 }
 
 func GetCollaboratorsByRepo(repo string) ([]*github.User, error) {
-	client, owner := GetClient()
+	client, owner, err := GetGithubClient()
+	if err != nil {
+		panic("error getting config")
+	}
 	users, _, err := client.Repositories.ListCollaborators(context.Background(), owner, repo, nil)
 
 	return users, err
 }
 func InviteCollaborator(repo, user string) error {
-	client, owner := GetClient()
+	client, owner, err := GetGithubClient()
+	if err != nil {
+		panic("error getting config")
+	}
+
 	invitation, _, err := client.Repositories.AddCollaborator(context.Background(), owner, repo, user, nil)
 	if err != nil {
 		println(err.Error())
