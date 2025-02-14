@@ -6,7 +6,7 @@ import (
 )
 
 func ListRepos() {
-	repos, err := GetRepos()
+	repos, err := GetRepos(GetGithubContext())
 	if err != nil {
 		fmt.Printf("Error listing repositories %s\n", err)
 		os.Exit(1)
@@ -17,7 +17,7 @@ func ListRepos() {
 }
 
 func ListCollaboratorsByRepo(repo string) {
-	users, err := GetCollaboratorsByRepo(repo)
+	users, err := GetCollaboratorsByRepo(GetGithubContext(), repo)
 	if err != nil {
 		fmt.Printf("Error listing collaborators %s\n", err)
 		os.Exit(1)
@@ -37,7 +37,7 @@ func ListCollaboratorsByRepo(repo string) {
 }
 
 func InviteCollaboratorToRepo(repo, user string) {
-	err := InviteCollaborator(repo, user)
+	err := InviteCollaborator(GetGithubContext(), repo, user)
 	if err != nil {
 		fmt.Printf("Error listing collaborators %s\n", err)
 		os.Exit(1)

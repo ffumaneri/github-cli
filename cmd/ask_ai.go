@@ -24,7 +24,7 @@ The AI will respond with the appropriate answer.`,
 		}
 
 		question := args[0]
-		err := common.AskLlm(question)
+		err := common.AskLlm(common.GetLLMContext(), question)
 		if err != nil {
 			fmt.Printf("Error while trying to interact with AI: %s\n", err)
 			return
