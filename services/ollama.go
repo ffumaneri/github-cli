@@ -15,8 +15,5 @@ func NewOllamaService(llm *ollama.LLM) *OllamaService {
 
 func (service *OllamaService) AskLlm(prompt string) (err error) {
 	err = ollama2.AskLlm(service.llm, prompt)
-	if err != nil {
-		return err
-	}
 	return
 }
