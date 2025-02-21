@@ -4,10 +4,13 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"github.com/ffumaneri/github-cli/ioc"
 	"os"
 
 	"github.com/spf13/cobra"
 )
+
+var AppContainer ioc.Container
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

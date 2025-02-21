@@ -10,7 +10,26 @@ import (
 	"github.com/tmc/langchaingo/llms/ollama"
 )
 
-func GetGithubClient() (*github.Client, string) {
+// Container defines an interface for initializing services and clients.
+type Container interface {
+	NewGithubService() *services.GithubService
+	NewOllamaService() *services.OllamaService
+}
+
+// AppContainer is a concrete implementation of Container.
+type AppContainer struct{}
+
+func (ioc *AppContainer) NewGithubService() *services.GithubService {
+	ghClient, owner := ioc.getGithubClient()
+	return services.NewGithubService(ghClient, owner)
+}
+
+func (ioc *AppContainer) NewOllamaService() *services.OllamaService {
+	llm := ioc.getLLMClient()
+	return services.NewOllamaService(llm)
+}
+
+func (ioc *AppContainer) getGithubClient() (*github.Client, string) {
 	config, err := common.NewConfig(viper.ViperLoadConfig)
 	if err != nil {
 		panic("error getting config")
@@ -22,26 +41,14 @@ func GetGithubClient() (*github.Client, string) {
 	return ghClient, owner
 }
 
-func NewGithubService() *services.GithubService {
-	ghClient, owner := GetGithubClient()
-	return services.NewGithubService(ghClient, owner)
-}
-
-func GetLLMClient() (llm *ollama.LLM) {
+func (ioc *AppContainer) getLLMClient() *ollama.LLM {
 	config, err := common.NewConfig(viper.ViperLoadConfig)
 	if err != nil {
 		panic("error getting config")
 	}
-
 	llmClient, ok := ollama2.NewOllamaClient(config)
 	if !ok {
 		panic("error getting config")
 	}
-
 	return llmClient
-}
-
-func NewOllamaService() *services.OllamaService {
-	llm := GetLLMClient()
-	return services.NewOllamaService(llm)
 }

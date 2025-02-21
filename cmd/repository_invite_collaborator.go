@@ -2,27 +2,23 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/ffumaneri/github-cli/ioc"
 	"github.com/spf13/cobra"
 )
 
 // lsrepoCmd represents the lsrepo command
 var repositoryInviteCmd = &cobra.Command{
 	Use:   "invite",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Invite a collaborator to a repository.",
+	Long: `Invite a collaborator to a repository. For example:
+git-cli repository invite -r my-repo -c my-collaborator
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 2 {
 			fmt.Println("Too many arguments.")
 		} else {
 			repo, _ := cmd.Flags().GetString("repo")
 			user, _ := cmd.Flags().GetString("collaborator")
-			ghService := ioc.NewGithubService()
+			ghService := AppContainer.NewGithubService()
 			ghService.InviteCollaboratorToRepo(repo, user)
 		}
 	},
