@@ -19,12 +19,12 @@ type Container interface {
 // AppContainer is a concrete implementation of Container.
 type AppContainer struct{}
 
-func (ioc *AppContainer) NewGithubService() *services.GithubService {
+func (ioc *AppContainer) NewGithubService() services.IGithubService {
 	ghClient, owner := ioc.getGithubClient()
 	return services.NewGithubService(ghClient, owner)
 }
 
-func (ioc *AppContainer) NewOllamaService() *services.OllamaService {
+func (ioc *AppContainer) NewOllamaService() services.IOllamaService {
 	llm := ioc.getLLMClient()
 	return services.NewOllamaService(llm)
 }
