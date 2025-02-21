@@ -3,7 +3,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
 package main
 
-import "github.com/ffumaneri/github-cli/cmd"
+import (
+	"github.com/ffumaneri/github-cli/cmd"
+)
 
 func main() {
 

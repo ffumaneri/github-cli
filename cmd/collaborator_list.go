@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/ffumaneri/github-cli/common"
+	"github.com/ffumaneri/github-cli/ioc"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -23,7 +23,8 @@ to quickly create a Cobra application.`,
 			os.Exit(1)
 		} else {
 			repo, _ := cmd.Flags().GetString("repo")
-			common.ListCollaboratorsByRepo(repo)
+			ghService := ioc.NewGithubService()
+			ghService.ListCollaboratorsByRepo(repo)
 		}
 	},
 }

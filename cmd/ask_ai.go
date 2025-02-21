@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/ffumaneri/github-cli/common"
+	"github.com/ffumaneri/github-cli/ioc"
 	"github.com/spf13/cobra"
 	// Replace with the correct import path for `AskLlm`
 )
@@ -24,7 +24,8 @@ The AI will respond with the appropriate answer.`,
 		}
 
 		question := args[0]
-		err := common.AskLlm(common.GetLLMContext(), question)
+		ollamaService := ioc.NewOllamaService()
+		err := ollamaService.AskLlm(question)
 		if err != nil {
 			fmt.Printf("Error while trying to interact with AI: %s\n", err)
 			return

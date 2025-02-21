@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/ffumaneri/github-cli/common"
+	"github.com/ffumaneri/github-cli/ioc"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,8 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		common.ListRepos()
+		ghService := ioc.NewGithubService()
+		ghService.ListRepos()
 	},
 }
 

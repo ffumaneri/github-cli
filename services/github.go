@@ -1,12 +1,26 @@
-package common
+package services
 
 import (
 	"fmt"
+	github2 "github.com/ffumaneri/github-cli/github"
+	"github.com/google/go-github/v65/github"
 	"os"
 )
 
-func ListRepos() {
-	repos, err := GetRepos(GetGithubContext())
+type GithubService struct {
+	client *github.Client
+	owner  string
+}
+
+func NewGithubService(client *github.Client, owner string) *GithubService {
+	return &GithubService{
+		client: client,
+		owner:  owner,
+	}
+}
+
+func (service *GithubService) ListRepos() {
+	repos, err := github2.GetRepos(service.client, service.owner)
 	if err != nil {
 		fmt.Printf("Error listing repositories %s\n", err)
 		os.Exit(1)
@@ -16,8 +30,8 @@ func ListRepos() {
 	}
 }
 
-func ListCollaboratorsByRepo(repo string) {
-	users, err := GetCollaboratorsByRepo(GetGithubContext(), repo)
+func (service *GithubService) ListCollaboratorsByRepo(repo string) {
+	users, err := github2.GetCollaboratorsByRepo(service.client, service.owner, repo)
 	if err != nil {
 		fmt.Printf("Error listing collaborators %s\n", err)
 		os.Exit(1)
@@ -36,8 +50,8 @@ func ListCollaboratorsByRepo(repo string) {
 	}
 }
 
-func InviteCollaboratorToRepo(repo, user string) {
-	err := InviteCollaborator(GetGithubContext(), repo, user)
+func (service *GithubService) InviteCollaboratorToRepo(repo, user string) {
+	err := github2.InviteCollaborator(service.client, service.owner, repo, user)
 	if err != nil {
 		fmt.Printf("Error listing collaborators %s\n", err)
 		os.Exit(1)
