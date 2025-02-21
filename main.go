@@ -10,6 +10,5 @@ import (
 
 func main() {
 	appContainer := &ioc.AppContainer{}
-	cmd.AppContainer = appContainer
-	cmd.Execute()
+	cmd.Execute(appContainer)
 }

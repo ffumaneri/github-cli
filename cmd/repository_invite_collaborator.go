@@ -18,7 +18,7 @@ git-cli repository invite -r my-repo -c my-collaborator
 		} else {
 			repo, _ := cmd.Flags().GetString("repo")
 			user, _ := cmd.Flags().GetString("collaborator")
-			ghService := AppContainer.NewGithubService()
+			ghService := appContainer.NewGithubService()
 			ghService.InviteCollaboratorToRepo(repo, user)
 		}
 	},

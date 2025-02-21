@@ -12,7 +12,7 @@ var repositoryListCmd = &cobra.Command{
 git-cli repository list
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		ghService := AppContainer.NewGithubService()
+		ghService := appContainer.NewGithubService()
 		ghService.ListRepos()
 	},
 }

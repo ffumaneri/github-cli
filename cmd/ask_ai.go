@@ -23,7 +23,7 @@ The AI will respond with the appropriate answer.`,
 		}
 
 		question := args[0]
-		ollamaService := AppContainer.NewOllamaService()
+		ollamaService := appContainer.NewOllamaService()
 		err := ollamaService.AskLlm(question)
 		if err != nil {
 			fmt.Printf("Error while trying to interact with AI: %s\n", err)

@@ -21,7 +21,7 @@ var collaboratorListCmd = &cobra.Command{
 				fmt.Printf("repo argument %s\n", err)
 				os.Exit(1)
 			}
-			ghService := AppContainer.NewGithubService()
+			ghService := appContainer.NewGithubService()
 			ghService.ListCollaboratorsByRepo(repo)
 		}
 	},
