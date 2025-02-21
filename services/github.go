@@ -7,6 +7,12 @@ import (
 	"os"
 )
 
+type IGithubService interface {
+	ListRepos()
+	ListCollaboratorsByRepo(repo string)
+	InviteCollaboratorToRepo(repo, user string)
+}
+
 type GithubService struct {
 	client *github.Client
 	owner  string

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 	// Replace with the correct import path for `AskLlm`
 )
@@ -16,20 +15,7 @@ For example:
   ask "What is the capital of France?"
 
 The AI will respond with the appropriate answer.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) < 1 {
-			fmt.Println("Error: You must provide a question to ask the AI")
-			return
-		}
-
-		question := args[0]
-		ollamaService := appContainer.NewOllamaService()
-		err := ollamaService.AskLlm(question)
-		if err != nil {
-			fmt.Printf("Error while trying to interact with AI: %s\n", err)
-			return
-		}
-	},
+	Run: AskLlm,
 }
 
 func init() {

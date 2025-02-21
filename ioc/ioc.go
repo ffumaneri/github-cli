@@ -12,8 +12,8 @@ import (
 
 // Container defines an interface for initializing services and clients.
 type Container interface {
-	NewGithubService() *services.GithubService
-	NewOllamaService() *services.OllamaService
+	NewGithubService() services.IGithubService
+	NewOllamaService() services.IOllamaService
 }
 
 // AppContainer is a concrete implementation of Container.

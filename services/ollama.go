@@ -5,6 +5,10 @@ import (
 	"github.com/tmc/langchaingo/llms/ollama"
 )
 
+type IOllamaService interface {
+	AskLlm(prompt string) error
+}
+
 type OllamaService struct {
 	llm *ollama.LLM
 }
