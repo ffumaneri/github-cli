@@ -31,42 +31,21 @@ type MockGithubService struct {
 
 // ListRepos mocks the `ListRepos` method
 func (m *MockGithubService) ListRepos() error {
-	m.Called()
-	return nil
+	args := m.Called()
+	return args.Error(0)
 }
 
 // ListCollaboratorsByRepo mocks the `ListCollaboratorsByRepo` method
 func (m *MockGithubService) ListCollaboratorsByRepo(repo string) error {
-	m.Called(repo)
-	return nil
+	args := m.Called(repo)
+	return args.Error(0)
+
 }
 
 // InviteCollaboratorToRepo mocks the `InviteCollaboratorToRepo` method
 func (m *MockGithubService) InviteCollaboratorToRepo(repo, user string) error {
-	m.Called(repo, user)
-	return nil
-}
-
-type MockErrorGithubService struct {
-	mock.Mock
-}
-
-// ListRepos mocks the `ListRepos` method
-func (m *MockErrorGithubService) ListRepos() error {
-	m.Called()
-	return fmt.Errorf("error while listing repos")
-}
-
-// ListCollaboratorsByRepo mocks the `ListCollaboratorsByRepo` method
-func (m *MockErrorGithubService) ListCollaboratorsByRepo(repo string) error {
-	m.Called(repo)
-	return fmt.Errorf("error while listing collaborators")
-}
-
-// InviteCollaboratorToRepo mocks the `InviteCollaboratorToRepo` method
-func (m *MockErrorGithubService) InviteCollaboratorToRepo(repo, user string) error {
-	m.Called(repo, user)
-	return fmt.Errorf("error while inviting collaborator")
+	args := m.Called(repo, user)
+	return args.Error(0)
 }
 
 type MockContainer struct {
@@ -210,7 +189,7 @@ func TestListCollaborators_WithError(t *testing.T) {
 		args := []string{}                                                // No additional arguments passed
 
 		// Mock service never gets invoked
-		mockGithubService := new(MockErrorGithubService)
+		mockGithubService := new(MockGithubService)
 		mockGithubService.On("ListCollaboratorsByRepo", "test-repo").Return(errors.New("error while listing collaborators"))
 		appContainer = &MockContainer{mockGitHubService: mockGithubService}
 		ListCollaborators(cmd, args)
@@ -251,7 +230,7 @@ func TestInviteCollaborator_WithError(t *testing.T) {
 		cmd.Flags().String("collaborator", "test-user", "Collaborator username")
 		args := []string{} // No additional arguments passed
 
-		mockGithubService := new(MockErrorGithubService)
+		mockGithubService := new(MockGithubService)
 		mockGithubService.On("InviteCollaboratorToRepo", "test-repo", "test-user").Return(fmt.Errorf("error"))
 
 		// Inject the mock service into the app container
@@ -346,7 +325,7 @@ func TestListRepositories_WithError(t *testing.T) {
 		cmd := &cobra.Command{}
 		args := []string{} // No arguments expected
 
-		mockGithubService := new(MockErrorGithubService)
+		mockGithubService := new(MockGithubService)
 		mockGithubService.On("ListRepos").Return(fmt.Errorf("error"))
 
 		// Inject the mock service into the app container
