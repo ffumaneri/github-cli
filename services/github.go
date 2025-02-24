@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 	github2 "github.com/ffumaneri/github-cli/github"
-	"github.com/google/go-github/v65/github"
 )
 
 type IGithubService interface {
@@ -12,22 +11,22 @@ type IGithubService interface {
 	InviteCollaboratorToRepo(repo, user string) error
 }
 
-type GithubService struct {
-	client       *github.Client
-	owner        string
-	consumerFunc func(data string)
-}
-
-func NewGithubService(client *github.Client, owner string, consumer func(data string)) *GithubService {
+func NewGithubService(owner string, githubWrapper github2.IGithubWrapper, consumer func(data string)) *GithubService {
 	return &GithubService{
-		client:       client,
-		owner:        owner,
-		consumerFunc: consumer,
+		owner:         owner,
+		consumerFunc:  consumer,
+		githubWrapper: githubWrapper,
 	}
 }
 
+type GithubService struct {
+	owner         string
+	consumerFunc  func(data string)
+	githubWrapper github2.IGithubWrapper
+}
+
 func (service *GithubService) ListRepos() (err error) {
-	repos, err := github2.GetRepos(service.client, service.owner)
+	repos, err := service.githubWrapper.GetRepos(service.owner)
 	if err != nil {
 		return err
 	}
@@ -38,7 +37,7 @@ func (service *GithubService) ListRepos() (err error) {
 }
 
 func (service *GithubService) ListCollaboratorsByRepo(repo string) (err error) {
-	userNames, err := github2.GetCollaboratorsByRepo(service.client, service.owner, repo)
+	userNames, err := service.githubWrapper.GetCollaboratorsByRepo(service.owner, repo)
 	if err != nil {
 		return err
 	}
@@ -49,7 +48,7 @@ func (service *GithubService) ListCollaboratorsByRepo(repo string) (err error) {
 }
 
 func (service *GithubService) InviteCollaboratorToRepo(repo, user string) (err error) {
-	err = github2.InviteCollaborator(service.client, service.owner, repo, user)
+	err = service.githubWrapper.InviteCollaborator(service.owner, repo, user)
 	if err != nil {
 		return
 	}

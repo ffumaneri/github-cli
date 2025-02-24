@@ -16,10 +16,21 @@ func NewOllamaClient(config *common.Config) (llm *ollama.LLM, ok bool) {
 	return llm, true
 }
 
-func AskLlm(llm *ollama.LLM, prompt string, streamingFunc func(ctx context.Context, chunk []byte) error) (err error) {
+func NewOllamaWrapper(llm *ollama.LLM) *OllamaWrapper {
+	return &OllamaWrapper{llm}
+}
+
+type ILLMWrapper interface {
+	AskLlm(prompt string, streamingFunc func(ctx context.Context, chunk []byte) error) (err error)
+}
+type OllamaWrapper struct {
+	llm *ollama.LLM
+}
+
+func (o *OllamaWrapper) AskLlm(prompt string, streamingFunc func(ctx context.Context, chunk []byte) error) (err error) {
 
 	llmCtx := context.Background()
-	completion, err := llm.Call(llmCtx, prompt,
+	completion, err := o.llm.Call(llmCtx, prompt,
 		llms.WithTemperature(0.8),
 		llms.WithStreamingFunc(streamingFunc),
 	)

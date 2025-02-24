@@ -2,25 +2,24 @@ package services
 
 import (
 	"context"
-	ollama2 "github.com/ffumaneri/github-cli/ollama"
-	"github.com/tmc/langchaingo/llms/ollama"
+	"github.com/ffumaneri/github-cli/ollama"
 )
 
 type IOllamaService interface {
 	AskLlm(prompt string) error
 }
 
-type OllamaService struct {
-	llm           *ollama.LLM
-	ChunkConsumer func(chunk []byte)
+func NewOllamaService(llmWrapper ollama.ILLMWrapper, chunkConsumer func(chunk []byte)) *OllamaService {
+	return &OllamaService{llmWrapper: llmWrapper, ChunkConsumer: chunkConsumer}
 }
 
-func NewOllamaService(llm *ollama.LLM, chunkConsumer func(chunk []byte)) *OllamaService {
-	return &OllamaService{llm: llm, ChunkConsumer: chunkConsumer}
+type OllamaService struct {
+	ChunkConsumer func(chunk []byte)
+	llmWrapper    ollama.ILLMWrapper
 }
 
 func (service *OllamaService) AskLlm(prompt string) (err error) {
-	err = ollama2.AskLlm(service.llm, prompt, func(ctx context.Context, chunk []byte) error {
+	err = service.llmWrapper.AskLlm(prompt, func(ctx context.Context, chunk []byte) error {
 		service.ChunkConsumer(chunk)
 		return nil
 	})

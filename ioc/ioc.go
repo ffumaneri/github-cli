@@ -22,14 +22,16 @@ type AppContainer struct{}
 
 func (ioc *AppContainer) NewGithubService() services.IGithubService {
 	ghClient, owner := ioc.getGithubClient()
-	return services.NewGithubService(ghClient, owner, func(data string) {
+	ghWrapper := github2.NewGithubWrapper(ghClient, owner)
+	return services.NewGithubService(owner, ghWrapper, func(data string) {
 		fmt.Println(data)
 	})
 }
 
 func (ioc *AppContainer) NewOllamaService() services.IOllamaService {
 	llm := ioc.getLLMClient()
-	return services.NewOllamaService(llm, func(chunk []byte) {
+	ollamaWrapper := ollama2.NewOllamaWrapper(llm)
+	return services.NewOllamaService(ollamaWrapper, func(chunk []byte) {
 		fmt.Print(string(chunk))
 	})
 }
