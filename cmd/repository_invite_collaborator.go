@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 )
 
@@ -12,16 +11,7 @@ var repositoryInviteCmd = &cobra.Command{
 	Long: `Invite a collaborator to a repository. For example:
 git-cli repository invite -r my-repo -c my-collaborator
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) > 2 {
-			fmt.Println("Too many arguments.")
-		} else {
-			repo, _ := cmd.Flags().GetString("repo")
-			user, _ := cmd.Flags().GetString("collaborator")
-			ghService := appContainer.NewGithubService()
-			ghService.InviteCollaboratorToRepo(repo, user)
-		}
-	},
+	Run: InviteCollaborator,
 }
 
 func init() {

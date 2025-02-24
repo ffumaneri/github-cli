@@ -11,10 +11,7 @@ var repositoryListCmd = &cobra.Command{
 	Long: `List Repositories. For example:
 git-cli repository list
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		ghService := appContainer.NewGithubService()
-		ghService.ListRepos()
-	},
+	Run: ListRepositories,
 }
 
 func init() {

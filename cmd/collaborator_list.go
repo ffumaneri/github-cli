@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 // lscollabsCmd represents the lscollabs command
@@ -11,20 +9,7 @@ var collaboratorListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List collaborators for a repository",
 	Long:  `List collaborators for a repository`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) > 1 {
-			fmt.Println("Too many arguments. You can only have one which is the repo name")
-			os.Exit(1)
-		} else {
-			repo, err := cmd.Flags().GetString("repo")
-			if err != nil {
-				fmt.Printf("repo argument %s\n", err)
-				os.Exit(1)
-			}
-			ghService := appContainer.NewGithubService()
-			ghService.ListCollaboratorsByRepo(repo)
-		}
-	},
+	Run:   ListCollaborators,
 }
 
 func init() {

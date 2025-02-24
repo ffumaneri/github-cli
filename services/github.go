@@ -4,13 +4,12 @@ import (
 	"fmt"
 	github2 "github.com/ffumaneri/github-cli/github"
 	"github.com/google/go-github/v65/github"
-	"os"
 )
 
 type IGithubService interface {
-	ListRepos()
-	ListCollaboratorsByRepo(repo string)
-	InviteCollaboratorToRepo(repo, user string)
+	ListRepos() error
+	ListCollaboratorsByRepo(repo string) error
+	InviteCollaboratorToRepo(repo, user string) error
 }
 
 type GithubService struct {
@@ -25,41 +24,30 @@ func NewGithubService(client *github.Client, owner string) *GithubService {
 	}
 }
 
-func (service *GithubService) ListRepos() {
+func (service *GithubService) ListRepos() (err error) {
 	repos, err := github2.GetRepos(service.client, service.owner)
 	if err != nil {
-		fmt.Printf("Error listing repositories %s\n", err)
-		os.Exit(1)
+		return err
 	}
 	for _, repo := range repos {
 		println(repo.GetFullName())
 	}
+	return
 }
 
-func (service *GithubService) ListCollaboratorsByRepo(repo string) {
+func (service *GithubService) ListCollaboratorsByRepo(repo string) (err error) {
 	users, err := github2.GetCollaboratorsByRepo(service.client, service.owner, repo)
 	if err != nil {
-		fmt.Printf("Error listing collaborators %s\n", err)
-		os.Exit(1)
+		return err
 	}
 	for _, user := range users {
 		fmt.Printf("%s\n", user.GetLogin())
-		//if user.GetLogin() == owner {
-		//	continue
-		//}
-		//invitation, _, err := client.Repositories.AddCollaborator(context.Background(), owner, "2024-tp2-restapi", user.GetLogin(), nil)
-		//if err != nil {
-		//	println(err.Error())
-		//	panic("error enviando invitacion")
-		//}
-		//println(invitation.Invitee.GetName())
 	}
+	return
 }
 
-func (service *GithubService) InviteCollaboratorToRepo(repo, user string) {
-	err := github2.InviteCollaborator(service.client, service.owner, repo, user)
-	if err != nil {
-		fmt.Printf("Error listing collaborators %s\n", err)
-		os.Exit(1)
-	}
+func (service *GithubService) InviteCollaboratorToRepo(repo, user string) (err error) {
+	err = github2.InviteCollaborator(service.client, service.owner, repo, user)
+
+	return
 }
