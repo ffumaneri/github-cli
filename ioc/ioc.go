@@ -1,6 +1,7 @@
 package ioc
 
 import (
+	"fmt"
 	"github.com/ffumaneri/github-cli/common"
 	"github.com/ffumaneri/github-cli/common/viper"
 	github2 "github.com/ffumaneri/github-cli/github"
@@ -21,12 +22,16 @@ type AppContainer struct{}
 
 func (ioc *AppContainer) NewGithubService() services.IGithubService {
 	ghClient, owner := ioc.getGithubClient()
-	return services.NewGithubService(ghClient, owner)
+	return services.NewGithubService(ghClient, owner, func(data string) {
+		fmt.Println(data)
+	})
 }
 
 func (ioc *AppContainer) NewOllamaService() services.IOllamaService {
 	llm := ioc.getLLMClient()
-	return services.NewOllamaService(llm)
+	return services.NewOllamaService(llm, func(chunk []byte) {
+		fmt.Print(string(chunk))
+	})
 }
 
 func (ioc *AppContainer) getGithubClient() (*github.Client, string) {

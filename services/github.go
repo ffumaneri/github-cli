@@ -13,14 +13,16 @@ type IGithubService interface {
 }
 
 type GithubService struct {
-	client *github.Client
-	owner  string
+	client       *github.Client
+	owner        string
+	consumerFunc func(data string)
 }
 
-func NewGithubService(client *github.Client, owner string) *GithubService {
+func NewGithubService(client *github.Client, owner string, consumer func(data string)) *GithubService {
 	return &GithubService{
-		client: client,
-		owner:  owner,
+		client:       client,
+		owner:        owner,
+		consumerFunc: consumer,
 	}
 }
 
@@ -30,24 +32,27 @@ func (service *GithubService) ListRepos() (err error) {
 		return err
 	}
 	for _, repo := range repos {
-		println(repo.GetFullName())
+		service.consumerFunc(repo)
 	}
 	return
 }
 
 func (service *GithubService) ListCollaboratorsByRepo(repo string) (err error) {
-	users, err := github2.GetCollaboratorsByRepo(service.client, service.owner, repo)
+	userNames, err := github2.GetCollaboratorsByRepo(service.client, service.owner, repo)
 	if err != nil {
 		return err
 	}
-	for _, user := range users {
-		fmt.Printf("%s\n", user.GetLogin())
+	for _, userName := range userNames {
+		service.consumerFunc(userName)
 	}
 	return
 }
 
 func (service *GithubService) InviteCollaboratorToRepo(repo, user string) (err error) {
 	err = github2.InviteCollaborator(service.client, service.owner, repo, user)
-
+	if err != nil {
+		return
+	}
+	service.consumerFunc(fmt.Sprintf("Collaborator %s invited to %s\n", user, repo))
 	return
 }

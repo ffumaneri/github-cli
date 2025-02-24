@@ -6,7 +6,6 @@ import (
 	"github.com/ffumaneri/github-cli/common"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
-	"log"
 )
 
 func NewOllamaClient(config *common.Config) (llm *ollama.LLM, ok bool) {
@@ -17,21 +16,13 @@ func NewOllamaClient(config *common.Config) (llm *ollama.LLM, ok bool) {
 	return llm, true
 }
 
-func AskLlm(llm *ollama.LLM, prompt string) (err error) {
+func AskLlm(llm *ollama.LLM, prompt string, streamingFunc func(ctx context.Context, chunk []byte) error) (err error) {
 
 	llmCtx := context.Background()
 	completion, err := llm.Call(llmCtx, prompt,
 		llms.WithTemperature(0.8),
-		llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
-			fmt.Print(string(chunk))
-			return nil
-		}),
+		llms.WithStreamingFunc(streamingFunc),
 	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	_ = completion
-
 	return
 }
