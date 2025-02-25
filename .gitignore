@@ -1,0 +1,6 @@
+/qdrant_storage/
+/apps/utnh/.env
+/.idea/.gitignore
+/.idea/github-cli.iml
+/.idea/modules.xml
+/.idea/vcs.xml
