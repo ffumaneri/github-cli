@@ -2,7 +2,6 @@ package common
 
 import (
 	"fmt"
-	"log"
 )
 
 // Config structure to hold the configuration
@@ -24,7 +23,7 @@ func NewConfig(configLoader ConfigLoader) (*Config, error) {
 	config := &Config{}
 	err := configLoader(".env", config)
 	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		return nil, fmt.Errorf("failed to load config: %v", err)
 	}
 
 	// Ensure all required fields are set

@@ -2,21 +2,14 @@ package ollama
 
 import (
 	"context"
-	"fmt"
-	"github.com/ffumaneri/github-cli/common"
 	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/ollama"
 )
 
-func NewOllamaClient(config *common.Config) (llm *ollama.LLM, ok bool) {
-	llm, err := ollama.New(ollama.WithModel(config.Ollama_Model))
-	if err != nil {
-		panic(fmt.Errorf("error getting ollama client with model %s: %w", config.Ollama_Model, err))
-	}
-	return llm, true
+type IOllamaLLM interface {
+	Call(ctx context.Context, prompt string, opts ...llms.CallOption) (string, error)
 }
 
-func NewOllamaWrapper(llm *ollama.LLM) *OllamaWrapper {
+func NewOllamaWrapper(llm IOllamaLLM) *OllamaWrapper {
 	return &OllamaWrapper{llm}
 }
 
@@ -24,7 +17,7 @@ type ILLMWrapper interface {
 	AskLlm(prompt string, streamingFunc func(ctx context.Context, chunk []byte) error) (err error)
 }
 type OllamaWrapper struct {
-	llm *ollama.LLM
+	llm IOllamaLLM
 }
 
 func (o *OllamaWrapper) AskLlm(prompt string, streamingFunc func(ctx context.Context, chunk []byte) error) (err error) {

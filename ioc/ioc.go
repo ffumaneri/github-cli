@@ -35,25 +35,36 @@ func (ioc *AppContainer) NewOllamaService() services.IOllamaService {
 		fmt.Print(string(chunk))
 	})
 }
+func NewGithubClient(config *common.Config) (*github.Client, string, error) {
+	// Create Github client
+	client := github.NewClient(nil).WithAuthToken(config.Token)
+	return client, config.Owner, nil
+}
 
 func (ioc *AppContainer) getGithubClient() (*github.Client, string) {
 	config, err := common.NewConfig(viper.ViperLoadConfig)
 	if err != nil {
 		panic("error getting config")
 	}
-	ghClient, owner, err := github2.NewGithubClient(config)
+	ghClient, owner, err := NewGithubClient(config)
 	if err != nil {
 		panic("error getting config")
 	}
 	return ghClient, owner
 }
-
+func NewOllamaClient(config *common.Config) (llm *ollama.LLM, ok bool) {
+	llm, err := ollama.New(ollama.WithModel(config.Ollama_Model))
+	if err != nil {
+		panic(fmt.Errorf("error getting ollama client with model %s: %w", config.Ollama_Model, err))
+	}
+	return llm, true
+}
 func (ioc *AppContainer) getLLMClient() *ollama.LLM {
 	config, err := common.NewConfig(viper.ViperLoadConfig)
 	if err != nil {
 		panic("error getting config")
 	}
-	llmClient, ok := ollama2.NewOllamaClient(config)
+	llmClient, ok := NewOllamaClient(config)
 	if !ok {
 		panic("error getting config")
 	}
