@@ -20,7 +20,4 @@ The AI will respond with the appropriate answer.`,
 
 func init() {
 	rootCmd.AddCommand(askCmd)
-
-	// Flags and configuration options (if needed) can be defined below
-	// e.g., askCmd.Flags().StringP("type", "t", "", "Question type")
 }
