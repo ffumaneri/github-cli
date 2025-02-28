@@ -19,7 +19,7 @@ import (
 // Playground with Ollama
 
 const URL = "http://localhost:6333"
-const COLLECTION_NAME = "facu_cv"
+const COLLECTION_NAME = "prueba1"
 const MODEL = "llama3.2"
 
 func Search() {
@@ -47,7 +47,7 @@ func Search() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	searchQuery := "Tell me about Facundo's experience in java?"
+	searchQuery := "tell me how to addContact, delete contact and list contacts and how they interacting with database and SQLAlchemy"
 	optionsVector := []vectorstores.Option{
 		vectorstores.WithScoreThreshold(0.80), // use for precision, when you want to get only the most relevant documents
 		//vectorstores.WithNameSpace(""),            // use for set a namespace in the storage
@@ -57,16 +57,16 @@ func Search() {
 	}
 
 	retriever := vectorstores.ToRetriever(store, 10, optionsVector...)
-	// search
-	//resDocs, err := retriever.GetRelevantDocuments(context.Background(), searchQuery)
-	//
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//for i, doc := range resDocs {
-	//	fmt.Printf("Doc: %d Score: %f, content: %s metadata: %s\n", i, doc.Score, doc.PageContent)
-	//}
+	//search
+	resDocs, err := retriever.GetRelevantDocuments(context.Background(), searchQuery)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for i, doc := range resDocs {
+		fmt.Printf("Doc: %d Score: %f, content: %s metadata: %s\n", i, doc.Score, doc.PageContent)
+	}
 
 	retrievalQA := chains.NewRetrievalQAFromLLM(llm, retriever)
 	var values map[string]any = make(map[string]any)

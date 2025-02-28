@@ -19,5 +19,5 @@ The AI will respond with the appropriate answer.`,
 }
 
 func init() {
-	rootCmd.AddCommand(askCmd)
+	aiCmd.AddCommand(askCmd)
 }

@@ -9,6 +9,7 @@ type Config struct {
 	Token        string
 	Owner        string
 	Ollama_Model string
+	QDrant_Url   string
 }
 
 var cachedConfig *Config // This will store the configuration as a singleton
@@ -28,6 +29,11 @@ func NewConfig(configLoader ConfigLoader) (*Config, error) {
 
 	// Ensure all required fields are set
 	if config.Token == "" || config.Owner == "" || config.Ollama_Model == "" {
+		return nil, fmt.Errorf("missing required configuration values")
+	}
+
+	// More
+	if config.QDrant_Url == "" {
 		return nil, fmt.Errorf("missing required configuration values")
 	}
 

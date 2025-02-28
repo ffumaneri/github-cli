@@ -68,3 +68,23 @@ func ListRepositories(_ *cobra.Command, _ []string) {
 		reportError("Error while trying to list repositories: %s\n", err)
 	}
 }
+
+func LoadSourceCode(cmd *cobra.Command, args []string) {
+	if len(args) > 2 {
+		reportError("Too many arguments.")
+	} else {
+		name, err := cmd.Flags().GetString("name")
+		if err != nil || name == "" {
+			reportError("Repo argument is required")
+		}
+		path, err := cmd.Flags().GetString("path")
+		if err != nil || path == "" {
+			reportError("Path argument is required")
+		}
+		oService := appContainer.NewOllamaService()
+		err = oService.LoadSourceCode(name, path)
+		if err != nil {
+			reportError("Error while trying to load documents: %s\n", err)
+		}
+	}
+}

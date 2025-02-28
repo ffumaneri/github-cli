@@ -5,7 +5,7 @@ import (
 )
 
 // lscollabsCmd represents the lscollabs command
-var collaboratorListCmd = &cobra.Command{
+var CollaboratorListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List collaborators for a repository",
 	Long:  `List collaborators for a repository`,
@@ -13,20 +13,10 @@ var collaboratorListCmd = &cobra.Command{
 }
 
 func init() {
-	collaboratorCmd.AddCommand(collaboratorListCmd)
-	collaboratorListCmd.PersistentFlags().StringP("repo", "r", "", "specify repository name")
-	err := collaboratorListCmd.MarkPersistentFlagRequired("repo")
+	collaboratorCmd.AddCommand(CollaboratorListCmd)
+	CollaboratorListCmd.PersistentFlags().StringP("repo", "r", "", "specify repository name")
+	err := CollaboratorListCmd.MarkPersistentFlagRequired("repo")
 	if err != nil {
 		panic(err)
 	}
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// lscollabsCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// lscollabsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

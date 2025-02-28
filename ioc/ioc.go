@@ -8,7 +8,15 @@ import (
 	ollama2 "github.com/ffumaneri/github-cli/ollama"
 	"github.com/ffumaneri/github-cli/services"
 	"github.com/google/go-github/v65/github"
+	"github.com/tmc/langchaingo/documentloaders"
+	"github.com/tmc/langchaingo/embeddings"
 	"github.com/tmc/langchaingo/llms/ollama"
+	"github.com/tmc/langchaingo/textsplitter"
+	"github.com/tmc/langchaingo/vectorstores"
+	"github.com/tmc/langchaingo/vectorstores/qdrant"
+	"log"
+	"net/url"
+	"os"
 )
 
 // Container defines an interface for initializing services and clients.
@@ -30,7 +38,53 @@ func (ioc *AppContainer) NewGithubService() services.IGithubService {
 
 func (ioc *AppContainer) NewOllamaService() services.IOllamaService {
 	llm := ioc.getLLMClient()
-	ollamaWrapper := ollama2.NewOllamaWrapper(llm)
+
+	split := textsplitter.NewRecursiveCharacter()
+	split.ChunkSize = 300   // size of the chunk is number of characters
+	split.ChunkOverlap = 30 // overlap is the number of characters that the chunks overlap
+
+	ollamaWrapper := ollama2.NewOllamaWrapper(llm, &common.FS{}, func(llm2 ollama2.IOllamaLLM) embeddings.Embedder {
+		ollamaEmbeder, err := embeddings.NewEmbedder(llm2.(*ollama.LLM))
+		if err != nil {
+			log.Fatal(err)
+		}
+		return ollamaEmbeder
+	}, func(embeder embeddings.Embedder, collectionName string) vectorstores.VectorStore {
+		config, err := common.NewConfig(viper.ViperLoadConfig)
+		if err != nil {
+			panic("error getting config")
+		}
+		// Create a new Qdrant vector store.
+		quadrantUrl, err := url.Parse(config.QDrant_Url)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		store, err := qdrant.New(
+			qdrant.WithURL(*quadrantUrl),
+			qdrant.WithCollectionName(collectionName),
+			qdrant.WithEmbedder(embeder),
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return store
+	}, func() textsplitter.TextSplitter {
+		split := textsplitter.NewRecursiveCharacter()
+		split.ChunkSize = 300   // size of the chunk is number of characters
+		split.ChunkOverlap = 30 // overlap is the number of characters that the chunks overlap
+		return split
+	}, func(filePath string, size int64) (documentloaders.Loader, *os.File) {
+		f, err := os.Open(filePath)
+		if err != nil {
+			fmt.Println("Error opening file: ", err)
+			return nil, nil
+		}
+
+		p := documentloaders.NewText(f)
+
+		return p, f
+	})
 	return services.NewOllamaService(ollamaWrapper, func(chunk []byte) {
 		fmt.Print(string(chunk))
 	})

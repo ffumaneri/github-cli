@@ -7,6 +7,7 @@ import (
 
 type IOllamaService interface {
 	AskLlm(prompt string) error
+	LoadSourceCode(name, directory string) error
 }
 
 func NewOllamaService(llmWrapper ollama.ILLMWrapper, chunkConsumer func(chunk []byte)) *OllamaService {
@@ -23,5 +24,10 @@ func (service *OllamaService) AskLlm(prompt string) (err error) {
 		service.ChunkConsumer(chunk)
 		return nil
 	})
+	return
+}
+
+func (service *OllamaService) LoadSourceCode(name, directory string) (err error) {
+	err = service.llmWrapper.LoadSourceCode(name, directory)
 	return
 }

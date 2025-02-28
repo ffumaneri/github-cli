@@ -22,7 +22,7 @@ func init() {
 		panic(err)
 	}
 	repositoryInviteCmd.PersistentFlags().StringP("repo", "r", "", "specify repository name")
-	err = collaboratorListCmd.MarkPersistentFlagRequired("repo")
+	err = CollaboratorListCmd.MarkPersistentFlagRequired("repo")
 	if err != nil {
 		panic(err)
 	}
