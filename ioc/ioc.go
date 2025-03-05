@@ -5,11 +5,13 @@ import (
 	"github.com/ffumaneri/github-cli/common"
 	"github.com/ffumaneri/github-cli/common/viper"
 	github2 "github.com/ffumaneri/github-cli/github"
-	ollama2 "github.com/ffumaneri/github-cli/ollama"
+	ollama2 "github.com/ffumaneri/github-cli/lang_chain"
 	"github.com/ffumaneri/github-cli/services"
 	"github.com/google/go-github/v65/github"
+	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/documentloaders"
 	"github.com/tmc/langchaingo/embeddings"
+	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
 	"github.com/tmc/langchaingo/textsplitter"
 	"github.com/tmc/langchaingo/vectorstores"
@@ -22,7 +24,7 @@ import (
 // Container defines an interface for initializing services and clients.
 type Container interface {
 	NewGithubService() services.IGithubService
-	NewOllamaService() services.IOllamaService
+	NewOllamaService() services.ILangChainService
 }
 
 // AppContainer is a concrete implementation of Container.
@@ -36,14 +38,14 @@ func (ioc *AppContainer) NewGithubService() services.IGithubService {
 	})
 }
 
-func (ioc *AppContainer) NewOllamaService() services.IOllamaService {
+func (ioc *AppContainer) NewOllamaService() services.ILangChainService {
 	llm := ioc.getLLMClient()
 
 	split := textsplitter.NewRecursiveCharacter()
 	split.ChunkSize = 300   // size of the chunk is number of characters
 	split.ChunkOverlap = 30 // overlap is the number of characters that the chunks overlap
 
-	ollamaWrapper := ollama2.NewOllamaWrapper(llm, &common.FS{}, func(llm2 ollama2.IOllamaLLM) embeddings.Embedder {
+	ollamaWrapper := ollama2.NewLangChainWrapper(llm, &common.FS{}, func(llm2 llms.Model) embeddings.Embedder {
 		ollamaEmbeder, err := embeddings.NewEmbedder(llm2.(*ollama.LLM))
 		if err != nil {
 			log.Fatal(err)
@@ -55,7 +57,7 @@ func (ioc *AppContainer) NewOllamaService() services.IOllamaService {
 			panic("error getting config")
 		}
 		// Create a new Qdrant vector store.
-		quadrantUrl, err := url.Parse(config.QDrant_Url)
+		quadrantUrl, err := url.Parse(config.Qdrant_Url)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -84,8 +86,10 @@ func (ioc *AppContainer) NewOllamaService() services.IOllamaService {
 		p := documentloaders.NewText(f)
 
 		return p, f
+	}, func(model llms.Model, retriever vectorstores.Retriever) chains.Chain {
+		return chains.NewRetrievalQAFromLLM(model, retriever)
 	})
-	return services.NewOllamaService(ollamaWrapper, func(chunk []byte) {
+	return services.NewLangChainService(ollamaWrapper, func(chunk []byte) {
 		fmt.Print(string(chunk))
 	})
 }

@@ -19,5 +19,12 @@ The AI will respond with the appropriate answer.`,
 }
 
 func init() {
+	askCmd.Flags().StringP("name", "n", "", "Context name")
+
+	askCmd.Flags().StringP("question", "q", "", "Question (required)")
+	err := askCmd.MarkFlagRequired("question")
+	if err != nil {
+		panic(err)
+	}
 	aiCmd.AddCommand(askCmd)
 }

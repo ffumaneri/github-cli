@@ -13,14 +13,24 @@ import (
 	"testing"
 )
 
-// MockOllamaService is a mock implementation of the OllamaService
+// MockOllamaService is a mock implementation of the LangChainService
 type MockOllamaService struct {
 	mock.Mock
 }
 
-// AskLlm mocks the AskLlm method of the OllamaService
+// AskLlm mocks the AskLlm method of the LangChainService
 func (m *MockOllamaService) AskLlm(prompt string) error {
 	args := m.Called(prompt)
+	return args.Error(0)
+}
+
+// AskLlm mocks the AskLlm method of the LangChainService
+func (m *MockOllamaService) AskLlmWithContext(contextName, prompt string) error {
+	args := m.Called(contextName, prompt)
+	return args.Error(0)
+}
+func (m *MockOllamaService) LoadSourceCode(name, directory string) error {
+	args := m.Called(name, directory)
 	return args.Error(0)
 }
 
@@ -51,7 +61,7 @@ func (m *MockGithubService) InviteCollaboratorToRepo(repo, user string) error {
 type MockContainer struct {
 	mock.Mock
 	mockGitHubService services.IGithubService
-	mockOllamaServie  services.IOllamaService
+	mockOllamaServie  services.ILangChainService
 }
 
 // NewGithubService returns a mocked GithubService.
@@ -59,8 +69,8 @@ func (m *MockContainer) NewGithubService() services.IGithubService {
 	return m.mockGitHubService
 }
 
-// NewOllamaService returns a mocked OllamaService.
-func (m *MockContainer) NewOllamaService() services.IOllamaService {
+// NewOllamaService returns a mocked LangChainService.
+func (m *MockContainer) NewOllamaService() services.ILangChainService {
 	return m.mockOllamaServie
 }
 
@@ -77,25 +87,16 @@ func RunForkTest(_ *testing.T, testName string) (string, string, error) {
 	return stdoutB.String(), stderrB.String(), err
 }
 
-func TestAskLlm_NoArgs(t *testing.T) {
+func TestAskLlm_SuccessWithoutContext(t *testing.T) {
 	cmd := &cobra.Command{}
-	args := []string{} // No arguments provided
-
-	// Capture the output
-	output := captureOutput(func() {
-		AskLlm(cmd, args)
-	})
-
-	assert.Contains(t, output, "Error: You must provide a question to ask the AI", "Expected error message not found.")
-}
-
-// TestAskLlm_Success tests the case where AskLlm is successfully called.
-func TestAskLlm_Success(t *testing.T) {
-	cmd := &cobra.Command{}
-	args := []string{"What is AI?"} // Valid question
+	cmd.Flags().String("name", "", "Context name") // No context
+	cmd.Flags().String("question", "test question", "Question")
+	args := []string{}
 
 	mockOllamaService := new(MockOllamaService)
-	mockOllamaService.On("AskLlm", "What is AI?").Return(nil)
+	mockOllamaService.On("AskLlm", "test question").Return(nil)
+
+	// Inject the mock service into the app container
 	appContainer = &MockContainer{mockOllamaServie: mockOllamaService}
 
 	// Capture the output
@@ -103,24 +104,104 @@ func TestAskLlm_Success(t *testing.T) {
 		AskLlm(cmd, args)
 	})
 
-	assert.Empty(t, output, nil)
-	mockOllamaService.AssertCalled(t, "AskLlm", "What is AI?")
+	// Since the function doesn't print anything on success, output should be empty
+	assert.Empty(t, output, "Expected no output on success")
+	mockOllamaService.AssertCalled(t, "AskLlm", "test question")
 }
 
-// TestAskLlm_Error tests the case where AskLlm returns an error.
-func TestAskLlm_Error(t *testing.T) {
+func TestAskLlm_SuccessWithContext(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "test-context", "Context name")
+	cmd.Flags().String("question", "test question", "Question")
+	args := []string{}
+
+	mockOllamaService := new(MockOllamaService)
+	mockOllamaService.On("AskLlmWithContext", "test-context", "test question").Return(nil)
+
+	// Inject the mock service into the app container
+	appContainer = &MockContainer{mockOllamaServie: mockOllamaService}
+
+	// Capture the output
+	output := captureOutput(func() {
+		AskLlm(cmd, args)
+	})
+
+	// Since the function doesn't print anything on success, output should be empty
+	assert.Empty(t, output, "Expected no output on success")
+	mockOllamaService.AssertCalled(t, "AskLlmWithContext", "test-context", "test question")
+}
+
+func TestAskLlm_TooManyArguments(t *testing.T) {
 	if os.Getenv("FORK") == "1" {
 		cmd := &cobra.Command{}
-		args := []string{"What is AI?"} // Valid question
+		cmd.Flags().String("name", "", "Context name")
+		cmd.Flags().String("question", "test question", "Question")
+		args := []string{"arg1", "arg2"} // Too many arguments
+		AskLlm(cmd, args)
+	}
+
+	stdout, stderr, err := RunForkTest(t, "TestAskLlm_TooManyArguments")
+
+	assert.NotNil(t, err, "Expected error not found.")
+	assert.Equal(t, err.Error(), "exit status 2")
+	assert.Contains(t, stderr, "panic")
+	assert.Contains(t, stdout, "FAIL")
+}
+
+func TestAskLlm_MissingQuestionFlag(t *testing.T) {
+	if os.Getenv("FORK") == "1" {
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", "", "Context name")
+		cmd.Flags().String("question", "", "Question") // Empty question
+		args := []string{}
+		AskLlm(cmd, args)
+	}
+
+	stdout, stderr, err := RunForkTest(t, "TestAskLlm_MissingQuestionFlag")
+
+	assert.NotNil(t, err, "Expected error not found.")
+	assert.Equal(t, err.Error(), "exit status 1")
+	assert.Contains(t, stderr, "Question argument is required")
+	assert.Contains(t, stdout, "FAIL")
+}
+
+func TestAskLlm_MissingContextFlag(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "", "Context name") // Empty context name
+	cmd.Flags().String("question", "test question", "Question")
+	args := []string{}
+
+	mockOllamaService := new(MockOllamaService)
+	mockOllamaService.On("AskLlm", "test question").Return(nil)
+
+	// Inject the mock service into the app container
+	appContainer = &MockContainer{mockOllamaServie: mockOllamaService}
+
+	// Capture the output
+	output := captureOutput(func() {
+		AskLlm(cmd, args)
+	})
+
+	// Since the function doesn't print anything on success, output should be empty
+	assert.Empty(t, output, "Expected no output on success")
+	mockOllamaService.AssertCalled(t, "AskLlm", "test question")
+}
+
+func TestAskLlm_WithErrorFromServiceWithoutContext(t *testing.T) {
+	if os.Getenv("FORK") == "1" {
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", "", "Context name") // No context
+		cmd.Flags().String("question", "test question", "Question")
+		args := []string{}
 
 		mockOllamaService := new(MockOllamaService)
-		mockOllamaService.On("AskLlm", "What is AI?").Return(errors.New("failed to query AI"))
+		mockOllamaService.On("AskLlm", "test question").Return(errors.New("mock error"))
 		appContainer = &MockContainer{mockOllamaServie: mockOllamaService}
 
 		AskLlm(cmd, args)
 	}
 
-	stdout, stderr, err := RunForkTest(t, "TestAskLlm_Error")
+	stdout, stderr, err := RunForkTest(t, "TestAskLlm_WithErrorFromServiceWithoutContext")
 
 	assert.NotNil(t, err, "Expected error not found.")
 	assert.Equal(t, err.Error(), "exit status 1")
@@ -128,6 +209,27 @@ func TestAskLlm_Error(t *testing.T) {
 	assert.Contains(t, stdout, "FAIL")
 }
 
+func TestAskLlm_WithErrorFromServiceWithContext(t *testing.T) {
+	if os.Getenv("FORK") == "1" {
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", "test-context", "Context name")
+		cmd.Flags().String("question", "test question", "Question")
+		args := []string{}
+
+		mockOllamaService := new(MockOllamaService)
+		mockOllamaService.On("AskLlmWithContext", "test-context", "test question").Return(errors.New("mock error"))
+		appContainer = &MockContainer{mockOllamaServie: mockOllamaService}
+
+		AskLlm(cmd, args)
+	}
+
+	stdout, stderr, err := RunForkTest(t, "TestAskLlm_WithErrorFromServiceWithContext")
+
+	assert.NotNil(t, err, "Expected error not found.")
+	assert.Equal(t, err.Error(), "exit status 1")
+	assert.Contains(t, stderr, "Error while trying to interact with AI")
+	assert.Contains(t, stdout, "FAIL")
+}
 func TestListCollaborators_Success(t *testing.T) {
 	cmd := &cobra.Command{}
 	cmd.Flags().String("repo", "test-repo", "Name of the repository") // Set the repo flag

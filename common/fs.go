@@ -52,11 +52,11 @@ func (fs *FS) walkDir(path string, callback WalkDirCallback, level int) error {
 	}
 
 	for _, file := range files {
-		log.Printf("%s%s%s", path, os.PathSeparator, file.Name())
+		log.Printf("%s%s%s", path, "/", file.Name())
 		if !file.IsDir() {
 			callback(fmt.Sprintf("%s%s%s", path, "/", file.Name()), file.Size())
 		} else {
-			err := fs.walkDir(fmt.Sprintf("%s%s%s", path, os.PathSeparator, file.Name()), callback, level+1)
+			err := fs.walkDir(fmt.Sprintf("%s%s%s", path, "/", file.Name()), callback, level+1)
 			if err != nil {
 				return err
 			}

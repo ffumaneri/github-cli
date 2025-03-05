@@ -11,18 +11,29 @@ func reportError(format string, args ...any) {
 	log.Fatalf(format, args)
 }
 
-func AskLlm(_ *cobra.Command, args []string) {
-	if len(args) < 1 {
-		fmt.Println("Error: You must provide a question to ask the AI")
-		return
+func AskLlm(cmd *cobra.Command, args []string) {
+	if len(args) > 2 {
+		reportError("Too many arguments. You can only have one which is the repo name")
+	}
+	contextName, err := cmd.Flags().GetString("name")
+
+	question, err := cmd.Flags().GetString("question")
+	if err != nil || question == "" {
+		reportError("Question argument is required")
+	}
+	ollamaService := appContainer.NewOllamaService()
+	if contextName == "" {
+		err := ollamaService.AskLlm(question)
+		if err != nil {
+			reportError("Error while trying to interact with AI: %s\n", err)
+		}
+	} else {
+		err := ollamaService.AskLlmWithContext(contextName, question)
+		if err != nil {
+			reportError("Error while trying to interact with AI: %s\n", err)
+		}
 	}
 
-	question := args[0]
-	ollamaService := appContainer.NewOllamaService()
-	err := ollamaService.AskLlm(question)
-	if err != nil {
-		reportError("Error while trying to interact with AI: %s\n", err)
-	}
 }
 
 func ListCollaborators(cmd *cobra.Command, args []string) {

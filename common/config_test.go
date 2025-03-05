@@ -21,6 +21,7 @@ func TestNewConfig(t *testing.T) {
 				cfg.Token = "validToken"
 				cfg.Owner = "validOwner"
 				cfg.Ollama_Model = "validModel"
+				cfg.Qdrant_Url = "validQdrantUrl"
 				return nil
 			},
 			expectedError: false,
