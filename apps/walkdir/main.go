@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Main function para testing
 func main() {
 	ws := &common.FS{}
 	t := time.Now()
